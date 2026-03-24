@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>나는 어떤 생활문화형 인간일까? | 평택시문화재단</title>
+  <meta name="description" content="12개의 질문으로 알아보는 나의 생활문화 유형 — 평택시문화재단 생활문화팀" />
+  <meta property="og:title" content="나는 어떤 생활문화형 인간일까?" />
+  <meta property="og:description" content="12개의 질문으로 알아보는 나의 생활문화 유형 테스트" />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      background: #FAF8F4;
+      color: #1A1209;
+      min-height: 100vh;
+    }
+    button { cursor: pointer; font-family: 'Noto Sans KR', sans-serif; border: none; background: none; }
+    a { text-decoration: none; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.38s ease both; }
+
+    #root {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 16px 72px;
+    }
+    .wrap { width: 100%; max-width: 520px; }
+  </style>
+</head>
+<body>
+<div id="root"><div class="wrap" id="app"></div></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const TYPES = [
+  {
+    code:"CSL", name:"동네 기획자", emoji:"🏮",
+    axes:{creation:true,social:true,local:true},
+    tagline:"판을 벌이지 않으면 몸이 근질거린다",
+    color:"#C1440E", bg:"#FDF3EE",
+    description:"동네에 아무것도 없으면 직접 만든다. 빈 공터에 장터를 열고, 옥상에 공연 무대를 깔고, 이웃을 끌어모아 뭔가를 만든다. '이런 거 있으면 좋겠다'는 말로 시작해서 실제로 해버리는 사람.",
+    keywords:["마을장터","골목공연","공동기획","이웃모집"],
+    traits:["추진력","현장중심","총무기질","지역애착"],
+    typical:"마을 축제 실행위원, 골목 프리마켓 주최자, 동네 독립영화 상영 기획자",
+    friends:["동네 모임꾼과는 최고의 콤비","이동형 창작자와 협업하면 범위가 넓어짐"],
+  },
+  {
+    code:"CSN", name:"이동형 창작자", emoji:"🎪",
+    axes:{creation:true,social:true,local:false},
+    tagline:"어디서든 판이 서면 뛰어든다",
+    color:"#2563EB", bg:"#EEF3FD",
+    description:"이 도시 저 동네, 이 페스티벌 저 레지던시를 누빈다. 처음 만나는 사람과도 금방 같이 작업하고, 낯선 장소에서도 판을 만든다. 정착보다 연결, 소유보다 경험이 우선인 유형.",
+    keywords:["레지던시","콜라보","팝업공연","이동기획"],
+    traits:["즉흥성","빠른적응","협업체질","장소초월"],
+    typical:"전국 순회 워크숍 강사, 도시 간 이동형 독립예술가, 팝업 갤러리 기획자",
+    friends:["동네 기획자에게 외부 자극을 줌","문화 동행자와 어디서든 잘 어울림"],
+  },
+  {
+    code:"CIL", name:"골목 제작자", emoji:"🪴",
+    axes:{creation:true,social:false,local:true},
+    tagline:"손끝에 동네가 담긴다",
+    color:"#6B4F1A", bg:"#FBF5EE",
+    description:"조용히 혼자 작업하지만, 그 결과물이 동네에 쌓인다. 발효 식품, 직접 만든 가구, 손 그림 엽서 — 뭔가를 만드는 행위 자체가 삶의 리듬이다. 알아주든 말든 오늘도 작업실에 불이 켜져 있다.",
+    keywords:["수공예","발효·텃밭","소량제작","동네공방"],
+    traits:["집중형","완성주의","깊이지향","과묵한자부심"],
+    typical:"독립 도예가, 홈브루어, 동네 서점 주인, 공방 운영자",
+    friends:["일상 탐험가와 조용히 잘 맞음","동네 기획자가 활동을 세상에 알려줌"],
+  },
+  {
+    code:"CIN", name:"여행 기록자", emoji:"🌊",
+    axes:{creation:true,social:false,local:false},
+    tagline:"보이는 것마다 내 재료가 된다",
+    color:"#0F766E", bg:"#EDFAF8",
+    description:"혼자 떠돌며 눈에 담은 것들을 작품으로 건진다. 낯선 골목의 빛, 시장 아줌마의 표정, 폐건물 담벼락 — 그냥 지나치지 못하고 기록하고 엮는다. 여행이 곧 창작 과정인 유형.",
+    keywords:["현장기록","사진·드로잉","독립출판","이동스튜디오"],
+    traits:["관찰집착","홀로작업","기록본능","장소감각"],
+    typical:"여행 일러스트레이터, 독립 다큐감독, 로컬 지도 제작자",
+    friends:["혼자 탐방객과 서로의 기록을 나눔","골목 제작자와 작업 방식이 닮아 있음"],
+  },
+  {
+    code:"RSL", name:"동네 모임꾼", emoji:"☕",
+    axes:{creation:false,social:true,local:true},
+    tagline:"오늘은 누구 집에서 뭐가 열리나",
+    color:"#9333EA", bg:"#F5EEFF",
+    description:"뭔가를 직접 만들진 않아도, 그 자리에 꼭 있다. 독서모임 단골, 상영회 홍보대사, 전통주 모임 주선인. 사람을 데려오고 분위기를 살리는 것 자체가 이 사람의 문화적 역할이다.",
+    keywords:["독서모임","상영회","전통주","동네커뮤니티"],
+    traits:["연결형","환대본능","입소문창조","동네애정"],
+    typical:"동네 독서 클럽 단골, 문화 카페 상주 손님, 로컬 모임 만년 총무",
+    friends:["동네 기획자와 최강의 조합","일상 탐험가를 밖으로 끌어냄"],
+  },
+  {
+    code:"RSN", name:"문화 동행자", emoji:"🎭",
+    axes:{creation:false,social:true,local:false},
+    tagline:"같이 가야 진짜 본 것이다",
+    color:"#D97706", bg:"#FFFBEC",
+    description:"혼자선 잘 안 가지만, 누군가랑 같이라면 어디든 간다. 전시도, 공연도, 마켓도 — 가서 보는 것보다 가서 같이 떠드는 게 더 중요한 유형. 이 사람이 있으면 그 어떤 문화 행사도 뒤풀이가 풍성해진다.",
+    keywords:["공연관람","전시투어","마켓나들이","뒤풀이문화"],
+    traits:["동반지향","공감형","수다본능","경험공유"],
+    typical:"문화 소모임 리더, 단체 전시 투어 주선자, 공연 후기 SNS 운영자",
+    friends:["이동형 창작자와 가장 잘 어울림","혼자 탐방객의 초대를 가끔 수락함"],
+  },
+  {
+    code:"RIL", name:"일상 탐험가", emoji:"🌿",
+    axes:{creation:false,social:false,local:true},
+    tagline:"이 골목은 오전 7시에 다른 얼굴을 한다",
+    color:"#4D7C0F", bg:"#F2FAEF",
+    description:"매일 같은 길을 걷는데 매일 다른 걸 발견한다. 단골 카페의 새 메뉴판, 시장 할머니의 오늘 반찬, 골목 끝 고양이 — 동네 일상이 이 사람에겐 끝없는 문화 콘텐츠다.",
+    keywords:["새벽산책","단골문화","계절감각","동네관찰"],
+    traits:["감수성","루틴형","조용한기쁨","세밀한관찰"],
+    typical:"새벽 산책 일기 쓰는 사람, 동네 마켓 단골, 계절 장 보는 사람",
+    friends:["골목 제작자와 조용히 공존","동네 모임꾼이 가끔 모임으로 이끌어줌"],
+  },
+  {
+    code:"RIN", name:"혼자 탐방객", emoji:"🗺️",
+    axes:{creation:false,social:false,local:false},
+    tagline:"아무도 모르는 곳에서 혼자 깊이 들어간다",
+    color:"#475569", bg:"#F1F5F9",
+    description:"혼자지만 목적이 아주 분명하다. 그 지역 막걸리 양조장 투어, 폐선 철로 따라 걷기, 이름 없는 지역 축제 혼자 가기. 누가 같이 가자고 해도 '괜찮아, 나 혼자 다녀올게' 하는 유형.",
+    keywords:["혼행","지역탐방","독립서점순례","로컬축제"],
+    traits:["자기주도","몰입형","설명안함","깊이우선"],
+    typical:"혼자 다니는 지역 양조장 탐방가, 독립서점 순례자, 시골 장터 탐험가",
+    friends:["여행 기록자와 각자 혼자 다니다 공유함","문화 동행자의 초대를 가끔 수락함"],
+  },
+];
+
+const QUESTIONS = [
+  {id:1,axis:"creation",
+   text:"주말 오후, 갑자기 4시간이 생겼다. 어떤 쪽이 더 끌리나?",
+   a:{label:"뭔가를 직접 만들거나 표현하고 싶다",value:true,emoji:"✋"},
+   b:{label:"좋은 공연, 전시, 음악을 보고 듣고 싶다",value:false,emoji:"👀"}},
+  {id:2,axis:"creation",
+   text:"지역 문화 행사에 참여할 때 나는?",
+   a:{label:"기획하거나 직접 참여자로 뭔가를 한다",value:true,emoji:"🛠️"},
+   b:{label:"관객으로 즐기는 게 더 편하고 좋다",value:false,emoji:"🎟️"}},
+  {id:3,axis:"creation",
+   text:"마음에 드는 물건을 봤을 때 드는 생각은?",
+   a:{label:"나도 비슷한 걸 직접 만들어볼 수 있겠다",value:true,emoji:"🔨"},
+   b:{label:"이거 어디서 살 수 있지? 누가 만들었지?",value:false,emoji:"🔍"}},
+  {id:4,axis:"creation",
+   text:"내 여가를 솔직하게 표현하면?",
+   a:{label:"만들고, 쓰고, 그리고, 표현하는 시간",value:true,emoji:"🎨"},
+   b:{label:"보고, 듣고, 느끼고, 채우는 시간",value:false,emoji:"🌀"}},
+  {id:5,axis:"social",
+   text:"문화 활동을 즐길 때 나는?",
+   a:{label:"혼자가 더 집중되고 깊어서 좋다",value:false,emoji:"🌙"},
+   b:{label:"누군가랑 같이 가야 더 재밌다",value:true,emoji:"☀️"}},
+  {id:6,axis:"social",
+   text:"좋은 공간이나 카페를 발견했을 때?",
+   a:{label:"혼자 다시 와서 조용히 즐기는 단골 공간이 된다",value:false,emoji:"🤫"},
+   b:{label:"바로 연락해서 '여기 같이 가자'고 부른다",value:true,emoji:"📱"}},
+  {id:7,axis:"social",
+   text:"주변 사람들이 나를 어떻게 볼 것 같나?",
+   a:{label:"혼자서도 잘 다니고 잘 즐기는 사람",value:false,emoji:"🧍"},
+   b:{label:"어디든 같이 가자고 부르는 사람",value:true,emoji:"🧑‍🤝‍🧑"}},
+  {id:8,axis:"social",
+   text:"이상적인 문화 경험의 마무리는?",
+   a:{label:"혼자 조용히 여운을 곱씹으며 집에 온다",value:false,emoji:"🌃"},
+   b:{label:"같이 간 사람과 근처 어디서 수다를 떤다",value:true,emoji:"🍻"}},
+  {id:9,axis:"local",
+   text:"여가를 주로 어디서 즐기나?",
+   a:{label:"내가 사는 동네, 익숙한 곳 위주",value:true,emoji:"🏘️"},
+   b:{label:"새로운 동네, 다른 지역 탐방",value:false,emoji:"🧭"}},
+  {id:10,axis:"local",
+   text:"기억에 남는 문화적 경험은 주로?",
+   a:{label:"동네에서 우연히 발견하거나 알게 된 것들",value:true,emoji:"🌱"},
+   b:{label:"처음 가본 낯선 곳에서 만난 것들",value:false,emoji:"✈️"}},
+  {id:11,axis:"local",
+   text:"나의 생활문화는?",
+   a:{label:"매일의 루틴과 일상 속에 자연스럽게 녹아 있다",value:true,emoji:"☕"},
+   b:{label:"특별히 어딘가 이동하거나 나갈 때 풍성해진다",value:false,emoji:"🚆"}},
+  {id:12,axis:"local",
+   text:"딱 하루, 완벽한 문화의 날이라면?",
+   a:{label:"동네 카페, 시장, 공원을 천천히 거닌다",value:true,emoji:"🗺️"},
+   b:{label:"다른 지역 페스티벌, 전시, 새 공간을 탐방한다",value:false,emoji:"🎡"}},
+];
+
+const TOTAL = QUESTIONS.length;
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+
+let state = { screen: 'intro', answers: {}, currentIdx: 0, result: null, chosenVal: null };
+
+function getResult(answers) {
+  const score = {creation:0, social:0, local:0};
+  QUESTIONS.forEach(q => {
+    if (answers[q.id] === true)  score[q.axis]++;
+    else if (answers[q.id] === false) score[q.axis]--;
+  });
+  const axes = {
+    creation: score.creation >= 0,
+    social:   score.social   >= 0,
+    local:    score.local    >= 0,
+  };
+  return TYPES.find(t =>
+    t.axes.creation === axes.creation &&
+    t.axes.social   === axes.social   &&
+    t.axes.local    === axes.local
+  );
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+
+function render() {
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+
+  if (state.screen === 'intro') app.appendChild(renderIntro());
+  else if (state.screen === 'quiz') app.appendChild(renderQuiz());
+  else if (state.screen === 'result') app.appendChild(renderResult());
+}
+
+// ── helpers ──
+
+function el(tag, attrs={}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === 'style' && typeof v === 'object') Object.assign(e.style, v);
+    else if (k === 'onclick') e.addEventListener('click', v);
+    else if (k === 'href') { e.href = v; }
+    else if (k === 'target') e.target = v;
+    else if (k === 'rel') e.rel = v;
+    else if (k === 'className') e.className = v;
+    else e.setAttribute(k, v);
+  }
+  children.flat().forEach(c => {
+    if (c == null) return;
+    e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  });
+  return e;
+}
+
+function div(style={}, ...children) { return el('div', {style}, ...children); }
+function span(style={}, text) { return el('span', {style}, text); }
+function p(style={}, text) { return el('p', {style}, text); }
+function tag(text, color, bg) {
+  return span({
+    fontSize:'12px', padding:'3px 9px', borderRadius:'4px',
+    background: bg || color+'18', color,
+    fontFamily:'Noto Sans KR,sans-serif', fontWeight:'600',
+  }, text);
+}
+function chip(text, color, bg) {
+  return span({
+    fontSize:'12px', padding:'3px 9px', borderRadius:'4px',
+    background: bg || '#F5F0E8', color: color || '#5A4A3A',
+    fontFamily:'Noto Sans KR,sans-serif',
+    display:'inline-block', marginRight:'6px', marginBottom:'6px',
+  }, text);
+}
+
+function sectionLabel(text) {
+  return p({
+    fontSize:'11px', letterSpacing:'0.14em', color:'#9A8878',
+    fontFamily:'sans-serif', textTransform:'uppercase', marginBottom:'10px',
+  }, text);
+}
+
+function card(style={}, ...children) {
+  return div({
+    background:'#fff', borderRadius:'16px', padding:'20px 22px',
+    border:'1px solid #EDE8DF', ...style,
+  }, ...children);
+}
+
+// ── INTRO ──
+
+function renderIntro() {
+  const wrap = div({className:'fade-up'});
+
+  // Hero
+  const hero = div({
+    background:'#1A1209', borderRadius:'20px', padding:'36px 24px 28px',
+    marginBottom:'20px', position:'relative', overflow:'hidden',
+  });
+  const bgText = div({
+    position:'absolute', top:'-10px', right:'-10px',
+    fontSize:'100px', opacity:'0.07', lineHeight:'1',
+    pointerEvents:'none', userSelect:'none',
+  }, '🏮');
+  const eyebrow = p({
+    fontSize:'11px', letterSpacing:'0.22em', color:'#C1440E',
+    fontFamily:'sans-serif', marginBottom:'12px', textTransform:'uppercase',
+  }, 'LCT · Living Culture Type');
+  const title = el('h1', {style:{
+    fontSize:'clamp(22px,6vw,30px)', fontWeight:'800',
+    color:'#FAF8F4', lineHeight:'1.3', marginBottom:'14px',
+    fontFamily:'Noto Serif KR,Georgia,serif',
+  }}, '나는 어떤\n생활문화형\n인간일까?');
+  title.style.whiteSpace = 'pre-line';
+  const desc = p({
+    fontSize:'14px', color:'#7A6A58', lineHeight:'1.75',
+    fontFamily:'Noto Sans KR,sans-serif',
+  }, '12개의 질문으로 8가지 유형 중 나에게 가장 가까운 생활문화 패턴을 찾아드립니다. 정답은 없고, 솔직한 답이 가장 정확합니다.');
+  hero.append(bgText, eyebrow, title, desc);
+
+  // Type grid
+  const grid = div({
+    display:'grid', gridTemplateColumns:'repeat(4,1fr)',
+    gap:'8px', marginBottom:'20px',
+  });
+  TYPES.forEach(t => {
+    const cell = div({
+      background:t.bg, borderRadius:'12px', padding:'12px 8px',
+      textAlign:'center', border:`1px solid ${t.color}22`,
+    });
+    cell.append(
+      div({fontSize:'22px', marginBottom:'4px'}, t.emoji),
+      div({
+        fontSize:'11px', color:t.color, fontFamily:'Noto Sans KR,sans-serif',
+        fontWeight:'600', lineHeight:'1.3',
+      }, t.name)
+    );
+    grid.appendChild(cell);
+  });
+
+  // Info bar
+  const info = div({
+    display:'flex', gap:'8px', marginBottom:'20px',
+    padding:'14px 16px', background:'#fff',
+    borderRadius:'12px', border:'1px solid #EDE8DF',
+  });
+  [['🎯','12문항'],['⏱️','약 3분'],['🔒','저장 안 됨']].forEach(([ic,lb]) => {
+    const item = div({flex:'1', textAlign:'center', fontSize:'13px', fontFamily:'sans-serif', color:'#6A5A4A'});
+    item.append(div({fontSize:'18px',marginBottom:'3px'}, ic), document.createTextNode(lb));
+    info.appendChild(item);
+  });
+
+  // Start button
+  const btn = el('button', {
+    onclick: () => { state.screen='quiz'; state.currentIdx=0; state.answers={}; render(); },
+    style: {
+      width:'100%', padding:'18px',
+      borderRadius:'14px',
+      background:'#C1440E', color:'#fff',
+      fontSize:'16px', fontWeight:'700',
+      letterSpacing:'0.04em',
+      boxShadow:'0 4px 16px rgba(193,68,14,0.30)',
+      transition:'transform 0.15s, box-shadow 0.15s',
+    }
+  }, '테스트 시작하기 →');
+  btn.addEventListener('mouseenter', () => { btn.style.transform='translateY(-2px)'; btn.style.boxShadow='0 6px 20px rgba(193,68,14,0.38)'; });
+  btn.addEventListener('mouseleave', () => { btn.style.transform=''; btn.style.boxShadow='0 4px 16px rgba(193,68,14,0.30)'; });
+
+  // PCCF credit
+  const credit = div({
+    textAlign:'center', marginTop:'20px',
+    fontSize:'12px', color:'#B0A090', fontFamily:'sans-serif',
+  }, '평택시문화재단 생활문화팀 제공');
+
+  wrap.append(hero, grid, info, btn, credit);
+  return wrap;
+}
+
+// ── QUIZ ──
+
+function renderQuiz() {
+  const q = QUESTIONS[state.currentIdx];
+  const answered = Object.keys(state.answers).length;
+
+  const wrap = div({});
+
+  // Progress
+  const pct = Math.round((answered / TOTAL) * 100);
+  const progWrap = div({marginBottom:'24px'});
+  const progRow = div({display:'flex', justifyContent:'space-between', marginBottom:'7px'});
+  progRow.append(
+    span({fontSize:'12px', color:'#9A8878', fontFamily:'sans-serif'}, `${answered} / ${TOTAL}`),
+    span({fontSize:'12px', color:'#9A8878', fontFamily:'sans-serif'}, `${pct}%`)
+  );
+  const track = div({height:'4px', background:'#EDE8DF', borderRadius:'99px', overflow:'hidden'});
+  const fill = div({
+    height:'100%', width:`${pct}%`,
+    background:'linear-gradient(90deg,#C1440E,#D97706)',
+    borderRadius:'99px', transition:'width 0.4s ease',
+  });
+  track.appendChild(fill);
+  progWrap.append(progRow, track);
+
+  // Question
+  const qWrap = div({className:'fade-up'});
+  const qNum = p({
+    fontSize:'11px', letterSpacing:'0.18em', color:'#C1440E',
+    fontFamily:'sans-serif', marginBottom:'10px', textTransform:'uppercase',
+  }, `Q ${state.currentIdx + 1}`);
+  const qText = el('h2', {style:{
+    fontSize:'clamp(16px,4vw,20px)', fontWeight:'700',
+    color:'#1A1209', lineHeight:'1.55', marginBottom:'26px',
+    fontFamily:'Noto Serif KR,Georgia,serif',
+  }}, q.text);
+
+  const opts = div({display:'flex', flexDirection:'column', gap:'12px'});
+
+  [q.a, q.b].forEach(opt => {
+    const btn = el('button', {
+      onclick: () => handleAnswer(q.id, opt.value),
+      style: {
+        display:'flex', alignItems:'center', gap:'16px',
+        padding:'17px 20px', borderRadius:'12px',
+        border:'2px solid #E8E2D8', background:'#fff',
+        textAlign:'left', width:'100%',
+        transition:'all 0.2s',
+        boxShadow:'0 1px 4px rgba(0,0,0,0.04)',
+      }
+    });
+    const emo = span({fontSize:'28px', flexShrink:'0'}, opt.emoji);
+    const lbl = span({
+      fontSize:'15px', color:'#3A2E22',
+      fontFamily:'Noto Sans KR,sans-serif', lineHeight:'1.5',
+    }, opt.label);
+    btn.append(emo, lbl);
+    btn.addEventListener('mouseenter', () => {
+      btn.style.borderColor = '#C1440E';
+      btn.style.background = '#FDF3EE';
+      lbl.style.color = '#C1440E';
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.borderColor = '#E8E2D8';
+      btn.style.background = '#fff';
+      lbl.style.color = '#3A2E22';
+    });
+    opts.appendChild(btn);
+  });
+
+  qWrap.append(qNum, qText, opts);
+  wrap.append(progWrap, qWrap);
+  return wrap;
+}
+
+function handleAnswer(id, val) {
+  state.answers[id] = val;
+  if (state.currentIdx + 1 < TOTAL) {
+    state.currentIdx++;
+    render();
+  } else {
+    state.result = getResult(state.answers);
+    state.screen = 'result';
+    render();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+// ── RESULT ──
+
+function renderResult() {
+  const t = state.result;
+  const wrap = div({className:'fade-up'});
+
+  // Hero
+  const hero = div({
+    background:t.color, borderRadius:'20px',
+    padding:'32px 24px 24px', marginBottom:'16px',
+    position:'relative', overflow:'hidden',
+  });
+  const bgEmo = div({
+    position:'absolute', top:'-20px', right:'-20px',
+    fontSize:'130px', opacity:'0.12', lineHeight:'1',
+    pointerEvents:'none', userSelect:'none',
+  }, t.emoji);
+  const eyebrow = p({
+    fontSize:'11px', letterSpacing:'0.2em', color:'rgba(255,255,255,0.55)',
+    fontFamily:'sans-serif', marginBottom:'8px', textTransform:'uppercase',
+  }, '당신의 생활문화 유형');
+  const nameRow = div({display:'flex', alignItems:'center', gap:'14px', marginBottom:'12px'});
+  nameRow.append(
+    span({fontSize:'48px'}, t.emoji),
+    (() => {
+      const d = div({});
+      d.append(
+        el('h2', {style:{
+          fontSize:'clamp(22px,5vw,32px)', fontWeight:'800',
+          color:'#fff', lineHeight:'1.15',
+          fontFamily:'Noto Serif KR,Georgia,serif',
+        }}, t.name),
+        span({fontSize:'12px', color:'rgba(255,255,255,0.55)', fontFamily:'sans-serif'}, t.code)
+      );
+      return d;
+    })()
+  );
+  const tl = p({
+    fontSize:'15px', color:'rgba(255,255,255,0.88)', fontStyle:'italic',
+    fontFamily:'Noto Serif KR,Georgia,serif', lineHeight:'1.5',
+    borderLeft:'3px solid rgba(255,255,255,0.35)', paddingLeft:'14px',
+  }, `"${t.tagline}"`);
+  hero.append(bgEmo, eyebrow, nameRow, tl);
+
+  // Description
+  const descCard = card({marginBottom:'14px'});
+  descCard.appendChild(p({
+    fontSize:'15px', lineHeight:'1.85', color:'#3A2E22',
+    fontFamily:'Noto Sans KR,sans-serif',
+  }, t.description));
+
+  // Axes
+  const axesCard = card({marginBottom:'14px'});
+  axesCard.appendChild(sectionLabel('성향 지표'));
+  const axDefs = [
+    {key:'creation', trueL:'창조형', falseL:'수용형'},
+    {key:'social',   trueL:'사교형', falseL:'독립형'},
+    {key:'local',    trueL:'로컬형', falseL:'유목형'},
+  ];
+  axDefs.forEach(({key, trueL, falseL}) => {
+    const val = t.axes[key];
+    const row = div({marginBottom:'14px'});
+    const labels = div({display:'flex', justifyContent:'space-between', marginBottom:'6px'});
+    labels.append(
+      span({fontSize:'13px', fontFamily:'sans-serif',
+        color: val ? '#9A8878' : '#1A1209',
+        fontWeight: val ? '400' : '700'}, falseL),
+      span({fontSize:'13px', fontFamily:'sans-serif',
+        color: val ? '#1A1209' : '#9A8878',
+        fontWeight: val ? '700' : '400'}, trueL)
+    );
+    const track = div({height:'6px', background:'#EDE8DF', borderRadius:'99px', overflow:'hidden', position:'relative'});
+    const bar = div({
+      height:'100%', width: val ? '68%' : '32%',
+      background: t.color, borderRadius:'99px',
+      position:'absolute', right: val ? '0' : 'auto', left: val ? 'auto' : '0',
+    });
+    track.appendChild(bar);
+    row.append(labels, track);
+    axesCard.appendChild(row);
+  });
+
+  // Keywords & traits
+  const grid2 = div({display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'14px'});
+  const kwCard = card({});
+  kwCard.appendChild(sectionLabel('키워드'));
+  const kwRow = div({});
+  t.keywords.forEach(k => kwRow.appendChild(chip(k, t.color, t.bg)));
+  kwCard.appendChild(kwRow);
+
+  const trCard = card({});
+  trCard.appendChild(sectionLabel('성향'));
+  const trRow = div({});
+  t.traits.forEach(tr => trRow.appendChild(chip(tr)));
+  trCard.appendChild(trRow);
+  grid2.append(kwCard, trCard);
+
+  // Typical
+  const typCard = card({marginBottom:'14px'});
+  typCard.append(sectionLabel('이런 사람이 많아요'),
+    p({fontSize:'14px', color:'#3A2E22', lineHeight:'1.65', fontFamily:'Noto Sans KR,sans-serif'}, t.typical));
+
+  // Friends
+  const friendCard = div({
+    background:t.bg, borderRadius:'16px', padding:'18px 22px',
+    border:`1px solid ${t.color}25`, marginBottom:'16px',
+  });
+  friendCard.appendChild(p({
+    fontSize:'11px', letterSpacing:'0.12em', color:t.color,
+    fontFamily:'sans-serif', textTransform:'uppercase', marginBottom:'10px',
+  }, '다른 유형과의 관계'));
+  t.friends.forEach(f => {
+    friendCard.appendChild(p({
+      fontSize:'13px', color:'#3A2E22', lineHeight:'1.6',
+      fontFamily:'Noto Sans KR,sans-serif', marginBottom:'6px',
+    }, '• ' + f));
+  });
+
+  // ── PCCF section ──
+  const pccf = div({
+    borderRadius:'20px', overflow:'hidden',
+    border:'1px solid #E8E2D8', marginBottom:'16px',
+  });
+
+  // pccf header
+  const pccfHead = div({
+    background:'#1A1209', padding:'18px 20px',
+    display:'flex', alignItems:'center', gap:'12px',
+  });
+  const pccfIcon = div({
+    width:'36px', height:'36px', borderRadius:'8px',
+    background:'#C1440E', display:'flex',
+    alignItems:'center', justifyContent:'center',
+    fontSize:'18px', flexShrink:'0', lineHeight:'1',
+  }, '🏛️');
+  const pccfTitleWrap = div({});
+  pccfTitleWrap.append(
+    p({fontSize:'11px', letterSpacing:'0.14em', color:'rgba(255,255,255,0.4)',
+       fontFamily:'sans-serif', textTransform:'uppercase', marginBottom:'2px',
+    }, 'Pyeongtaek Cultural Foundation'),
+    p({fontSize:'15px', fontWeight:'700', color:'#FAF8F4',
+       fontFamily:'Noto Serif KR,Georgia,serif',
+    }, '평택시문화재단 생활문화팀')
+  );
+  pccfHead.append(pccfIcon, pccfTitleWrap);
+
+  // Programs
+  const programs = div({background:'#fff', padding:'16px 18px 4px'});
+  programs.appendChild(sectionLabel('2025 주요 프로그램'));
+  const progs = [
+    {emoji:'🎪', title:'오픈큐브 6기 레지던시', desc:'안정리 예술인광장 입주작가·기획자 시민 창작 프로그램 (3~10월)', tag:'진행중', tc:'#16a34a'},
+    {emoji:'🖼️', title:'기억 프로젝트 4th',    desc:'문화예술학교 연간 작품발표회 — 공예·판화·도자·디지털드로잉 등 12개 프로그램', tag:'전시', tc:'#2563EB'},
+    {emoji:'🌿', title:'평택형 생활문화 프로그램', desc:'노을·생태 감수성, 1인 가구 대상 시민 참여 프로그램 기획 운영', tag:'기획중', tc:'#D97706'},
+    {emoji:'🎭', title:'마토예술제',             desc:'평택시문화재단 대표 생활문화 축제 — 시민 참여·지역 예술인 협업', tag:'연간', tc:'#9333EA'},
+  ];
+  progs.forEach((pr, i) => {
+    const row = div({
+      display:'flex', gap:'12px', padding:'12px 0',
+      borderBottom: i < 3 ? '1px solid #F0EBE3' : 'none',
+    });
+    const ico = div({
+      width:'38px', height:'38px', borderRadius:'8px',
+      background:'#FAF8F4', display:'flex',
+      alignItems:'center', justifyContent:'center',
+      fontSize:'18px', flexShrink:'0', lineHeight:'1',
+    }, pr.emoji);
+    const txt = div({flex:'1'});
+    const titleRow = div({display:'flex', alignItems:'center', gap:'6px', marginBottom:'3px', flexWrap:'wrap'});
+    titleRow.append(
+      span({fontSize:'13px', fontWeight:'700', color:'#1A1209', fontFamily:'Noto Sans KR,sans-serif'}, pr.title),
+      tag(pr.tag, pr.tc)
+    );
+    txt.append(titleRow,
+      p({fontSize:'12px', color:'#7A6A58', lineHeight:'1.5', fontFamily:'Noto Sans KR,sans-serif'}, pr.desc)
+    );
+    row.append(ico, txt);
+    programs.appendChild(row);
+  });
+
+  // Notion banner
+  const notionLink = el('a', {
+    href:'https://pccf.notion.site/2025',
+    target:'_blank', rel:'noopener noreferrer',
+    style:{
+      display:'flex', alignItems:'center', justifyContent:'space-between',
+      padding:'16px 20px',
+      background:'linear-gradient(135deg,#C1440E 0%,#D97706 100%)',
+    }
+  });
+  const nlLeft = div({display:'flex', alignItems:'center', gap:'12px'});
+  const nlIco = div({
+    width:'32px', height:'32px', borderRadius:'6px',
+    background:'rgba(255,255,255,0.2)',
+    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px',
+  }, '📋');
+  const nlTxt = div({});
+  nlTxt.append(
+    p({fontSize:'13px', fontWeight:'700', color:'#fff',
+       fontFamily:'Noto Sans KR,sans-serif', marginBottom:'1px',
+    }, '2025 생활문화팀 전체 소식 보기'),
+    p({fontSize:'11px', color:'rgba(255,255,255,0.65)', fontFamily:'sans-serif'}, 'pccf.notion.site')
+  );
+  nlLeft.append(nlIco, nlTxt);
+  notionLink.append(nlLeft, span({fontSize:'18px', color:'rgba(255,255,255,0.8)'}, '→'));
+
+  // Sub links
+  const subLinks = div({display:'grid', gridTemplateColumns:'1fr 1fr 1fr', background:'#FAF8F4'});
+  [
+    {label:'공식 홈페이지', icon:'🌐', href:'https://www.pccf.or.kr'},
+    {label:'카카오채널',    icon:'💬', href:'https://pf.kakao.com/_GbmJs'},
+    {label:'대관 신청',    icon:'📅', href:'https://pccfrent.kr'},
+  ].forEach((lk, i) => {
+    const a = el('a', {
+      href:lk.href, target:'_blank', rel:'noopener noreferrer',
+      style:{
+        display:'flex', flexDirection:'column', alignItems:'center',
+        padding:'14px 8px',
+        borderRight: i < 2 ? '1px solid #EDE8DF' : 'none',
+        transition:'background 0.15s',
+      }
+    });
+    a.append(
+      span({fontSize:'18px', marginBottom:'4px'}, lk.icon),
+      span({fontSize:'11px', color:'#6A5A4A', fontFamily:'sans-serif', textAlign:'center'}, lk.label)
+    );
+    a.addEventListener('mouseenter', () => a.style.background='#EEE8DF');
+    a.addEventListener('mouseleave', () => a.style.background='');
+    subLinks.appendChild(a);
+  });
+
+  pccf.append(pccfHead, programs, notionLink, subLinks);
+
+  // Share button
+  const shareBtn = el('button', {
+    onclick: () => {
+      if (navigator.share) {
+        navigator.share({title:'내 생활문화 유형은 '+t.name+'!', text:t.tagline, url:window.location.href});
+      } else {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          shareBtn.textContent = '✓ 링크 복사됨!';
+          setTimeout(() => { shareBtn.textContent = '이 유형 공유하기 🔗'; }, 2000);
+        });
+      }
+    },
+    style:{
+      width:'100%', padding:'15px',
+      borderRadius:'12px', border:'2px solid #1A1209',
+      background:'transparent', color:'#1A1209',
+      fontSize:'15px', fontWeight:'700',
+      letterSpacing:'0.03em', marginBottom:'12px',
+      transition:'all 0.15s',
+    }
+  }, '이 유형 공유하기 🔗');
+  shareBtn.addEventListener('mouseenter', () => { shareBtn.style.background='#1A1209'; shareBtn.style.color='#FAF8F4'; });
+  shareBtn.addEventListener('mouseleave', () => { shareBtn.style.background='transparent'; shareBtn.style.color='#1A1209'; });
+
+  // Retry
+  const retryBtn = el('button', {
+    onclick: () => { state.screen='intro'; state.answers={}; state.currentIdx=0; state.result=null; render(); window.scrollTo({top:0}); },
+    style:{
+      width:'100%', padding:'15px',
+      borderRadius:'12px', border:'none',
+      background:'#1A1209', color:'#FAF8F4',
+      fontSize:'15px', fontWeight:'700',
+      letterSpacing:'0.03em',
+      transition:'opacity 0.15s',
+    }
+  }, '다시 테스트하기');
+  retryBtn.addEventListener('mouseenter', () => retryBtn.style.opacity='0.8');
+  retryBtn.addEventListener('mouseleave', () => retryBtn.style.opacity='1');
+
+  wrap.append(hero, descCard, axesCard, grid2, typCard, friendCard, pccf, shareBtn, retryBtn);
+  return wrap;
+}
+
+// ─── BOOT ────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
