@@ -10,6 +10,7 @@
   <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; }
@@ -649,15 +650,220 @@ function renderResult() {
 
   pccf.append(pccfHead, notionLink, subLinks);
 
-  // Share button
+  // ── Share Card (hidden, rendered for capture) ──
+  const shareCard = div({
+    id: 'share-card',
+    style: {
+      position: 'fixed', left: '-9999px', top: '0',
+      width: '400px',
+      background: '#FAF8F4',
+      borderRadius: '20px',
+      overflow: 'hidden',
+      fontFamily: 'Noto Sans KR, sans-serif',
+    }
+  });
+
+  // Card hero
+  const scHero = div({
+    style: {
+      background: t.color,
+      padding: '32px 28px 24px',
+      position: 'relative',
+      overflow: 'hidden',
+    }
+  });
+  const scBg = div({
+    style: {
+      position:'absolute', top:'-10px', right:'-10px',
+      fontSize:'110px', opacity:'0.12', lineHeight:'1',
+      pointerEvents:'none',
+    }
+  }, t.emoji);
+  const scEyebrow = document.createElement('p');
+  scEyebrow.textContent = '나의 생활문화 유형';
+  Object.assign(scEyebrow.style, {
+    fontSize:'11px', letterSpacing:'0.2em', color:'rgba(255,255,255,0.55)',
+    fontFamily:'sans-serif', marginBottom:'10px', textTransform:'uppercase',
+  });
+  const scRow = div({ style:{ display:'flex', alignItems:'center', gap:'14px', marginBottom:'14px' }});
+  const scEmo = document.createElement('span');
+  scEmo.textContent = t.emoji;
+  scEmo.style.fontSize = '52px';
+  const scNameWrap = div({style:{}});
+  const scName = document.createElement('h2');
+  scName.textContent = t.name;
+  Object.assign(scName.style, {
+    fontSize:'30px', fontWeight:'800', color:'#fff',
+    lineHeight:'1.15', fontFamily:'Noto Serif KR, Georgia, serif',
+  });
+  const scCode = document.createElement('span');
+  scCode.textContent = t.code;
+  Object.assign(scCode.style, { fontSize:'12px', color:'rgba(255,255,255,0.5)', fontFamily:'sans-serif' });
+  scNameWrap.append(scName, scCode);
+  scRow.append(scEmo, scNameWrap);
+  const scTagline = document.createElement('p');
+  scTagline.textContent = `"${t.tagline}"`;
+  Object.assign(scTagline.style, {
+    fontSize:'14px', color:'rgba(255,255,255,0.88)', fontStyle:'italic',
+    fontFamily:'Noto Serif KR, Georgia, serif', lineHeight:'1.5',
+    borderLeft:'3px solid rgba(255,255,255,0.3)', paddingLeft:'12px',
+  });
+  scHero.append(scBg, scEyebrow, scRow, scTagline);
+
+  // Card body
+  const scBody = div({ style:{ padding:'22px 24px', background:'#fff' }});
+
+  // Description
+  const scDesc = document.createElement('p');
+  scDesc.textContent = t.description;
+  Object.assign(scDesc.style, {
+    fontSize:'13px', lineHeight:'1.8', color:'#3A2E22',
+    fontFamily:'Noto Sans KR, sans-serif', marginBottom:'18px',
+  });
+
+  // Axes bars
+  const scAxesLabel = document.createElement('p');
+  scAxesLabel.textContent = '성향 지표';
+  Object.assign(scAxesLabel.style, {
+    fontSize:'10px', letterSpacing:'0.14em', color:'#9A8878',
+    fontFamily:'sans-serif', textTransform:'uppercase', marginBottom:'10px',
+  });
+  const scAxes = div({style:{}});
+  [
+    {key:'creation', trueL:'창조형', falseL:'수용형'},
+    {key:'social',   trueL:'사교형', falseL:'독립형'},
+    {key:'local',    trueL:'로컬형', falseL:'유목형'},
+  ].forEach(({key, trueL, falseL}) => {
+    const val = t.axes[key];
+    const row = div({style:{ marginBottom:'10px' }});
+    const lbls = div({style:{ display:'flex', justifyContent:'space-between', marginBottom:'5px' }});
+    const lbl1 = document.createElement('span');
+    lbl1.textContent = falseL;
+    Object.assign(lbl1.style, { fontSize:'12px', fontFamily:'sans-serif', color: val?'#B0A090':'#1A1209', fontWeight: val?'400':'700' });
+    const lbl2 = document.createElement('span');
+    lbl2.textContent = trueL;
+    Object.assign(lbl2.style, { fontSize:'12px', fontFamily:'sans-serif', color: val?'#1A1209':'#B0A090', fontWeight: val?'700':'400' });
+    lbls.append(lbl1, lbl2);
+    const track = div({style:{ height:'5px', background:'#EDE8DF', borderRadius:'99px', overflow:'hidden', position:'relative' }});
+    const bar = div({style:{
+      height:'100%', width: val?'68%':'32%', background:t.color,
+      borderRadius:'99px', position:'absolute',
+      right: val?'0':'auto', left: val?'auto':'0',
+    }});
+    track.appendChild(bar);
+    row.append(lbls, track);
+    scAxes.appendChild(row);
+  });
+
+  // Keywords
+  const scKwLabel = document.createElement('p');
+  scKwLabel.textContent = '키워드';
+  Object.assign(scKwLabel.style, {
+    fontSize:'10px', letterSpacing:'0.14em', color:'#9A8878',
+    fontFamily:'sans-serif', textTransform:'uppercase',
+    marginTop:'16px', marginBottom:'8px',
+  });
+  const scKwRow = div({style:{ display:'flex', flexWrap:'wrap', gap:'6px' }});
+  t.keywords.forEach(k => {
+    const kw = document.createElement('span');
+    kw.textContent = k;
+    Object.assign(kw.style, {
+      fontSize:'12px', padding:'3px 9px', borderRadius:'4px',
+      background: t.bg, color: t.color,
+      border: `1px solid ${t.color}30`,
+      fontFamily:'Noto Sans KR, sans-serif',
+    });
+    scKwRow.appendChild(kw);
+  });
+
+  scBody.append(scDesc, scAxesLabel, scAxes, scKwLabel, scKwRow);
+
+  // Card footer
+  const scFooter = div({
+    style:{
+      background:'#1A1209', padding:'14px 24px',
+      display:'flex', justifyContent:'space-between', alignItems:'center',
+    }
+  });
+  const scFootLeft = document.createElement('p');
+  scFootLeft.textContent = '평택시문화재단 생활문화팀';
+  Object.assign(scFootLeft.style, {
+    fontSize:'11px', color:'rgba(255,255,255,0.5)',
+    fontFamily:'sans-serif',
+  });
+  const scFootRight = document.createElement('p');
+  scFootRight.textContent = 'LCT · Living Culture Type';
+  Object.assign(scFootRight.style, {
+    fontSize:'11px', color:'#C1440E',
+    fontFamily:'sans-serif', letterSpacing:'0.05em',
+  });
+  scFooter.append(scFootLeft, scFootRight);
+
+  shareCard.append(scHero, scBody, scFooter);
+  document.body.appendChild(shareCard);
+
+  // ── Image Save Button ──
+  const imgBtn = el('button', {
+    onclick: async () => {
+      imgBtn.textContent = '⏳ 이미지 생성 중...';
+      imgBtn.disabled = true;
+      try {
+        const canvas = await html2canvas(shareCard, {
+          scale: 3,
+          useCORS: true,
+          backgroundColor: '#FAF8F4',
+          logging: false,
+        });
+        const url = canvas.toDataURL('image/png');
+
+        // Try native share (mobile)
+        if (navigator.canShare && navigator.canShare({files:[]})) {
+          canvas.toBlob(async (blob) => {
+            const file = new File([blob], `생활문화유형_${t.name}.png`, {type:'image/png'});
+            try {
+              await navigator.share({ files:[file], title:`내 생활문화 유형은 ${t.name}!`, text: t.tagline });
+            } catch(e) {
+              downloadImage(url, t.name);
+            }
+          }, 'image/png');
+        } else {
+          downloadImage(url, t.name);
+        }
+      } catch(e) {
+        alert('이미지 생성 중 오류가 발생했어요. 다시 시도해주세요.');
+      }
+      imgBtn.textContent = '📷 결과 이미지 저장하기';
+      imgBtn.disabled = false;
+    },
+    style:{
+      width:'100%', padding:'15px',
+      borderRadius:'12px', border:'none',
+      background: t.color, color:'#fff',
+      fontSize:'15px', fontWeight:'700',
+      letterSpacing:'0.03em', marginBottom:'10px',
+      transition:'opacity 0.15s',
+      boxShadow: `0 4px 14px ${t.color}44`,
+    }
+  }, '📷 결과 이미지 저장하기');
+  imgBtn.addEventListener('mouseenter', () => imgBtn.style.opacity='0.85');
+  imgBtn.addEventListener('mouseleave', () => imgBtn.style.opacity='1');
+
+  function downloadImage(dataUrl, name) {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `생활문화유형_${name}.png`;
+    a.click();
+  }
+
+  // ── URL Share Button ──
   const shareBtn = el('button', {
     onclick: () => {
       if (navigator.share) {
-        navigator.share({title:'내 생활문화 유형은 '+t.name+'!', text:t.tagline, url:window.location.href});
+        navigator.share({title:'내 생활문화 유형은 '+t.name+'!', text:t.tagline+'\n\n나는 어떤 생활문화형 인간일까? 테스트 해보기 →', url:window.location.href});
       } else {
         navigator.clipboard.writeText(window.location.href).then(() => {
           shareBtn.textContent = '✓ 링크 복사됨!';
-          setTimeout(() => { shareBtn.textContent = '이 유형 공유하기 🔗'; }, 2000);
+          setTimeout(() => { shareBtn.textContent = '🔗 링크 공유하기'; }, 2000);
         });
       }
     },
@@ -666,10 +872,10 @@ function renderResult() {
       borderRadius:'12px', border:'2px solid #1A1209',
       background:'transparent', color:'#1A1209',
       fontSize:'15px', fontWeight:'700',
-      letterSpacing:'0.03em', marginBottom:'12px',
+      letterSpacing:'0.03em', marginBottom:'10px',
       transition:'all 0.15s',
     }
-  }, '이 유형 공유하기 🔗');
+  }, '🔗 링크 공유하기');
   shareBtn.addEventListener('mouseenter', () => { shareBtn.style.background='#1A1209'; shareBtn.style.color='#FAF8F4'; });
   shareBtn.addEventListener('mouseleave', () => { shareBtn.style.background='transparent'; shareBtn.style.color='#1A1209'; });
 
@@ -688,7 +894,7 @@ function renderResult() {
   retryBtn.addEventListener('mouseenter', () => retryBtn.style.opacity='0.8');
   retryBtn.addEventListener('mouseleave', () => retryBtn.style.opacity='1');
 
-  wrap.append(hero, descCard, axesCard, grid2, typCard, friendCard, pccf, shareBtn, retryBtn);
+  wrap.append(hero, descCard, axesCard, grid2, typCard, friendCard, pccf, imgBtn, shareBtn, retryBtn);
   return wrap;
 }
 
