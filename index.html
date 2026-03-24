@@ -650,16 +650,19 @@ function renderResult() {
 
   pccf.append(pccfHead, notionLink, subLinks);
 
-  // ── Share Card (hidden, rendered for capture) ──
-  const shareCard = div({
+  // ── Share Card (hidden off-screen, rendered for capture) ──
+  const shareCard = el('div', {
     id: 'share-card',
     style: {
-      position: 'fixed', left: '-9999px', top: '0',
+      position: 'fixed',
+      left: '-9999px',
+      top: '0',
       width: '400px',
       background: '#FAF8F4',
       borderRadius: '20px',
       overflow: 'hidden',
       fontFamily: 'Noto Sans KR, sans-serif',
+      zIndex: '-1',
     }
   });
 
@@ -855,15 +858,69 @@ function renderResult() {
     a.click();
   }
 
-  // ── URL Share Button ──
+  // ── URL + Image Share Button ──
   const shareBtn = el('button', {
-    onclick: () => {
-      if (navigator.share) {
-        navigator.share({title:'내 생활문화 유형은 '+t.name+'!', text:t.tagline+'\n\n나는 어떤 생활문화형 인간일까? 테스트 해보기 →', url:window.location.href});
-      } else {
+    onclick: async () => {
+      shareBtn.textContent = '⏳ 준비 중...';
+      shareBtn.disabled = true;
+
+      try {
+        const canvas = await html2canvas(shareCard, {
+          scale: 3, useCORS: true,
+          backgroundColor: '#FAF8F4', logging: false,
+        });
+
+        const shareData = {
+          title: `내 생활문화 유형은 ${t.name}!`,
+          text: `${t.emoji} ${t.name}\n"${t.tagline}"\n\n나는 어떤 생활문화형 인간일까? 테스트 해보기 →`,
+          url: window.location.href,
+        };
+
+        // 이미지 포함 공유 (모바일)
+        if (navigator.canShare) {
+          canvas.toBlob(async (blob) => {
+            const file = new File([blob], `생활문화유형_${t.name}.png`, { type: 'image/png' });
+            const withImage = { ...shareData, files: [file] };
+            try {
+              if (navigator.canShare(withImage)) {
+                await navigator.share(withImage);
+              } else {
+                await navigator.share(shareData);
+              }
+            } catch (e) {
+              if (e.name !== 'AbortError') fallbackCopy();
+            }
+            shareBtn.textContent = '🔗 링크 + 이미지 공유하기';
+            shareBtn.disabled = false;
+          }, 'image/png');
+        } else if (navigator.share) {
+          // 이미지 없이 링크만 공유 (일부 환경)
+          try {
+            await navigator.share(shareData);
+          } catch(e) {
+            if (e.name !== 'AbortError') fallbackCopy();
+          }
+          shareBtn.textContent = '🔗 링크 + 이미지 공유하기';
+          shareBtn.disabled = false;
+        } else {
+          // PC: 링크 클립보드 복사
+          fallbackCopy();
+          shareBtn.textContent = '🔗 링크 + 이미지 공유하기';
+          shareBtn.disabled = false;
+        }
+      } catch(e) {
+        alert('공유 중 오류가 발생했어요. 이미지 저장 버튼을 이용해주세요.');
+        shareBtn.textContent = '🔗 링크 + 이미지 공유하기';
+        shareBtn.disabled = false;
+      }
+
+      function fallbackCopy() {
         navigator.clipboard.writeText(window.location.href).then(() => {
           shareBtn.textContent = '✓ 링크 복사됨!';
-          setTimeout(() => { shareBtn.textContent = '🔗 링크 공유하기'; }, 2000);
+          setTimeout(() => {
+            shareBtn.textContent = '🔗 링크 + 이미지 공유하기';
+            shareBtn.disabled = false;
+          }, 2000);
         });
       }
     },
@@ -875,7 +932,7 @@ function renderResult() {
       letterSpacing:'0.03em', marginBottom:'10px',
       transition:'all 0.15s',
     }
-  }, '🔗 링크 공유하기');
+  }, '🔗 링크 + 이미지 공유하기');
   shareBtn.addEventListener('mouseenter', () => { shareBtn.style.background='#1A1209'; shareBtn.style.color='#FAF8F4'; });
   shareBtn.addEventListener('mouseleave', () => { shareBtn.style.background='transparent'; shareBtn.style.color='#1A1209'; });
 
